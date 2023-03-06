@@ -1,13 +1,13 @@
 # ChatGPT Mirror
 
-Based on model `gpt-3.5-turbo`. Demo: https://fastgpt.app
+Based on model `gpt-3.5-turbo`. Demo: <https://fastgpt.app>
 
 ## Installation
 
 > Tested on Node.js 18.x.
 
 ```bash
-$ pnpm install
+pnpm install
 ```
 
 ## Running the app
@@ -31,7 +31,7 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
-Visit http://localhost:3000
+Visit <http://localhost:4001>
 
 ## Credits
 
