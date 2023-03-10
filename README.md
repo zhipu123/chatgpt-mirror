@@ -33,6 +33,31 @@ $ pnpm run start:prod
 
 Visit <http://localhost:4001>
 
+## Running the app with Docker
+
+### Build the image
+
+```bash
+$ docker build -t chatgpt-mirror .
+```
+
+### Run the container
+
+```bash
+$ docker run -d -p 3000:3000 --env-file .env chatgpt-mirror
+```
+
+### Run with the config file
+
+```bash
+$ docker run -d -p 3000:3000 --env-file .env -v $(pwd)/config/app.config.json:/app/config/app.config.json chatgpt-mirror
+```
+
+## Configuration
+
+You can configure the app by copying the `config/example.json` to `config/app.config.json`
+and editing its values. Note: comments are not allowed in JSON files.
+
 ## Credits
 
 Thanks: [transitive-bullshit/chatgpt-api](https://github.com/transitive-bullshit/chatgpt-api)

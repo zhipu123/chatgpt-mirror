@@ -1,13 +1,20 @@
-import { Injectable, MessageEvent, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, MessageEvent, OnModuleInit } from '@nestjs/common';
 import { ChatGPTAPI, ChatMessage, ConversationResponseEvent } from 'chatgpt';
-import fetch from 'isomorphic-unfetch';
+import fetch from './fetch.js';
+
+import { ConfigService } from '@nestjs/config';
 import ProxyAgent from 'proxy-agent-v2';
 import { Observable } from 'rxjs';
+import { OpenAiConfig } from './config/configuration.types.js';
 
 @Injectable()
 export class ChatGPTService implements OnModuleInit {
+  private readonly logger = new Logger(ChatGPTService.name);
+
   private api: ChatGPTAPI;
   private proxyAgent: unknown;
+
+  constructor(private readonly configService: ConfigService) {}
 
   onModuleInit() {
     const { HTTP_PROXY } = process.env;
@@ -15,9 +22,17 @@ export class ChatGPTService implements OnModuleInit {
       this.proxyAgent = new ProxyAgent(HTTP_PROXY);
     }
 
+    const openaiConfig: OpenAiConfig = this.configService.get('openai') || {};
+    const { systemMessage, maxTokens, model = 'gpt-3.5-turbo' } = openaiConfig;
+
     this.api = new ChatGPTAPI({
       apiKey: process.env.OPENAI_API_KEY,
       fetch: this.proxyFetch,
+      systemMessage,
+      maxModelTokens: maxTokens,
+      completionParams: {
+        model,
+      },
     });
   }
 
@@ -40,7 +55,19 @@ export class ChatGPTService implements OnModuleInit {
             });
           },
         })
-        .then(() => {
+        .catch((err) => {
+          this.logger.error('Error sending message', err);
+
+          subscriber.next({
+            type: 'add',
+            data: {
+              error: {
+                message: err.message || 'Unknown error',
+              },
+            },
+          });
+        })
+        .finally(() => {
           subscriber.next({
             data: '[DONE]',
           });
@@ -67,8 +94,11 @@ export class ChatGPTService implements OnModuleInit {
           content_type: 'text',
           parts: [text],
         },
+        author: {
+          role: 'assistant',
+        },
       },
       error: null,
-    };
+    } as ConversationResponseEvent;
   }
 }
